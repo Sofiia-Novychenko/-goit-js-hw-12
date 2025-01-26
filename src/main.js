@@ -10,6 +10,12 @@ import { createGalleryCardTemplate } from './js/render-functions.js';
 const searchFormEl = document.querySelector('.js-search-form');
 const galleryEl = document.querySelector('.js-gallery');
 const loader = document.querySelector('.loader');
+const loadMoreBtn = document.querySelector('.js-load-more');
+
+let page = 1;
+let userInputValue = ' ';
+//* аби і в OnSearchFormSubmit і в OnSearchFormSubmit передавалось одне пошукове слово
+let per_page = 15;
 
 loader.style.display = 'none';
 
@@ -20,58 +26,109 @@ const galleryModal = new SimpleLightbox('.js-gallery a', {
   className: 'simple-lightbox',
 });
 
-const OnSearchFormSubmit = event => {
-  event.preventDefault();
+const OnSearchFormSubmit = async event => {
+  try {
+    event.preventDefault();
 
-  let userInputValue = event.currentTarget.elements.user_query.value.trim();
+    userInputValue = event.currentTarget.elements.user_query.value.trim();
 
-  galleryEl.innerHTML = ' ';
+    galleryEl.innerHTML = ' ';
 
-  if (userInputValue === '') {
-    iziToast.warning({
-      title: 'Caution',
-      message: 'You forgot important data',
-      position: 'topRight',
-    });
+    if (userInputValue === '') {
+      iziToast.warning({
+        title: 'Caution',
+        message: 'You forgot important data',
+        position: 'topRight',
+      });
 
-    return;
+      return;
+    }
+
+    loader.style.display = 'block';
+
+    // * аби запит йшов за першою групою і кнопка ще не показувалась
+    page = 1;
+    loadMoreBtn.classList.add('is-hidden');
+
+    const { data } = await fetchPhotosByQuery(userInputValue, page);
+
+    if (data.total === 0) {
+      iziToast.error({
+        title: '',
+        messageColor: '#FFFFFF',
+        messageSize: 16,
+        messageLineHeight: 1.5,
+        backgroundColor: '#EF4040',
+        position: 'topRight',
+        message:
+          'Sorry, there are no images matching your search query. Please try again!',
+      });
+
+      galleryEl.innerHTML = ' ';
+      searchFormEl.reset();
+      return;
+    }
+
+    if (data.totalHits > 1) {
+      loadMoreBtn.classList.remove('is-hidden');
+
+      loadMoreBtn.addEventListener('click', onLoadBtnClick);
+    }
+
+    galleryEl.insertAdjacentHTML(
+      'beforeend',
+      createGalleryCardTemplate(data.hits)
+    );
+
+    galleryModal.refresh();
+
+    loader.style.display = 'none';
+
+    event.target.reset();
+  } catch (err) {
+    console.log(err.message);
   }
-
-  loader.style.display = 'inline-block';
-
-  fetchPhotosByQuery(userInputValue)
-    .then(data => {
-      if (data.total === 0) {
-        iziToast.error({
-          title: '',
-          messageColor: '#FFFFFF',
-          messageSize: 16,
-          messageLineHeight: 1.5,
-          backgroundColor: '#EF4040',
-          position: 'topRight',
-          message:
-            'Sorry, there are no images matching your search query. Please try again!',
-        });
-
-        galleryEl.innerHTML = ' ';
-        searchFormEl.reset();
-        return;
-      }
-
-      galleryEl.insertAdjacentHTML(
-        'beforeend',
-        createGalleryCardTemplate(data.hits)
-      );
-      galleryModal.refresh();
-      // loader.style.display = 'none';
-    })
-    .catch(err => {
-      console.log(err.message);
-    })
-    .finally(() => {
-      loader.style.display = 'none';
-      event.target.reset();
-    });
 };
 
 searchFormEl.addEventListener('submit', OnSearchFormSubmit);
+
+const onLoadBtnClick = async event => {
+  try {
+    page++;
+
+    loader.style.display = 'block';
+
+    const { data } = await fetchPhotosByQuery(userInputValue, page);
+
+    galleryEl.insertAdjacentHTML(
+      'beforeend',
+      createGalleryCardTemplate(data.hits)
+    );
+
+    loader.style.display = 'none';
+
+    // * реалізація повільного прокручення
+
+    const galleryItemEL = document.querySelector('.gallery-item');
+    const cardHeight = galleryItemEL.getBoundingClientRect().height;
+
+    window.scrollBy({
+      top: cardHeight * 2,
+      behavior: 'smooth',
+    });
+    // *
+
+    // * перевірка кінця колекції
+    if (page * per_page >= data.totalHits) {
+      loadMoreBtn.classList.add('is-hidden');
+      loadMoreBtn.removeEventListener('click', onLoadBtnClick);
+
+      iziToast.info({
+        position: 'topRight',
+        message: "We're sorry, but you've reached the end of search results",
+      });
+    }
+  } catch (error) {
+    console.log(error);
+  }
+};

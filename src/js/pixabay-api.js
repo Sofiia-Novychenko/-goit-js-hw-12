@@ -1,21 +1,22 @@
 //* зберігай функції для HTTP-запитів.
 
+import axios from 'axios';
+
 const SEARCH_URL = 'https://pixabay.com/api/';
 const MY_KEY = '48325012-3ccc1b5d8b9c25a12d61b57d7';
 
-export const fetchPhotosByQuery = query => {
-  const params = new URLSearchParams({
-    key: MY_KEY,
-    q: query,
-    image_type: 'photo',
-    orientation: 'horizontal',
-    safesearch: true,
-  });
+export const fetchPhotosByQuery = (query, currentPage) => {
+  const axiousParams = {
+    params: {
+      key: MY_KEY,
+      q: query,
+      page: currentPage,
+      per_page: 15,
+      image_type: 'photo',
+      orientation: 'horizontal',
+      safesearch: true,
+    },
+  };
 
-  return fetch(`${SEARCH_URL}?${params}`).then(response => {
-    if (!response.ok) {
-      throw new Error(response.status);
-    }
-    return response.json();
-  });
+  return axios.get(`${SEARCH_URL}`, axiousParams);
 };

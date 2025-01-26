@@ -33,6 +33,7 @@ a {
 
 button {
   cursor: pointer;
+  display: block;
 }
 
 img {
@@ -157,33 +158,48 @@ body {
 
 /* loader css */
 .loader {
-  color: #2e2f42;
+  margin: auto;
+  width: 48px;
+  height: 48px;
+  border: 5px solid;
+  border-color: #4e75ff transparent;
+  border-radius: 50%;
   display: inline-block;
-  position: relative;
-  font-size: 48px;
-  font-family: Arial, Helvetica, sans-serif;
   box-sizing: border-box;
-}
-.loader::after {
-  content: '';
-  width: 5px;
-  height: 5px;
-  background: currentColor;
-  position: absolute;
-  bottom: 10px;
-  right: -5px;
-  box-sizing: border-box;
-  animation: animloader 1s linear infinite;
+  animation: rotation 1s linear infinite;
 }
 
-@keyframes animloader {
+@keyframes rotation {
   0% {
-    box-shadow: 10px 0 rgba(255, 255, 255, 0), 20px 0 rgba(255, 255, 255, 0);
-  }
-  50% {
-    box-shadow: 10px 0 white, 20px 0 rgba(255, 255, 255, 0);
+    transform: rotate(0deg);
   }
   100% {
-    box-shadow: 10px 0 white, 20px 0 white;
+    transform: rotate(360deg);
   }
+}
+
+/* Load more button css*/
+
+.load-more-btn {
+  margin: 32px auto;
+
+  background: #4e75ff;
+  color: #ffffff;
+  border: none;
+  cursor: pointer;
+  border-radius: 8px;
+  padding: 8px 16px;
+  width: 125px;
+  height: 40px;
+  font-family: inherit;
+  font-size: inherit;
+  transition: background-color 0.1s ease;
+}
+
+.load-more-btn:hover {
+  background-color: #6c8cff;
+}
+
+.load-more-btn.is-hidden {
+  display: none;
 }
