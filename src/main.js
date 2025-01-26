@@ -108,7 +108,6 @@ const onLoadBtnClick = async event => {
     loader.style.display = 'none';
 
     // * реалізація повільного прокручення
-
     const galleryItemEL = document.querySelector('.gallery-item');
     const cardHeight = galleryItemEL.getBoundingClientRect().height;
 
