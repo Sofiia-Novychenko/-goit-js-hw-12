@@ -118,6 +118,7 @@ const onLoadBtnClick = async event => {
     // *
 
     // * перевірка кінця колекції
+
     if (page * per_page >= data.totalHits) {
       loadMoreBtn.classList.add('is-hidden');
       loadMoreBtn.removeEventListener('click', onLoadBtnClick);
