@@ -71,12 +71,6 @@ const OnSearchFormSubmit = async event => {
       return;
     }
 
-    if (data.totalHits > 1) {
-      loadMoreBtn.classList.remove('is-hidden');
-
-      loadMoreBtn.addEventListener('click', onLoadBtnClick);
-    }
-
     galleryEl.insertAdjacentHTML(
       'beforeend',
       createGalleryCardTemplate(data.hits)
@@ -84,15 +78,28 @@ const OnSearchFormSubmit = async event => {
 
     galleryModal.refresh();
 
+    //* окреме приховування кнопки, коли по запиту знайдено меньше 15 зображень і навпаки
+    if (data.hits.length < per_page) {
+      loadMoreBtn.classList.add('is-hidden');
+    } else {
+      loadMoreBtn.classList.remove('is-hidden');
+    }
+
     loader.style.display = 'none';
 
     event.target.reset();
   } catch (err) {
-    console.log(err.message);
+    loader.style.display = 'block';
+
+    iziToast.error({
+      message: 'Something went wrong, please try again later.',
+      position: 'topRight',
+    });
+    console.error('An error occurred:', err.message);
+
+    loader.style.display = 'none';
   }
 };
-
-searchFormEl.addEventListener('submit', OnSearchFormSubmit);
 
 const onLoadBtnClick = async event => {
   try {
@@ -108,6 +115,18 @@ const onLoadBtnClick = async event => {
     );
 
     galleryModal.refresh();
+
+    // * перевірка кінця колекції
+
+    if (page * per_page >= data.totalHits || data.hits.length < per_page) {
+      loadMoreBtn.classList.add('is-hidden');
+
+      iziToast.info({
+        position: 'topRight',
+        message: "We're sorry, but you've reached the end of search results",
+      });
+    }
+
     loader.style.display = 'none';
 
     // * реалізація повільного прокручення
@@ -118,20 +137,18 @@ const onLoadBtnClick = async event => {
       top: cardHeight * 2,
       behavior: 'smooth',
     });
-    // *
-
-    // * перевірка кінця колекції
-
-    if (page * per_page >= data.totalHits || data.hits.length < per_page) {
-      loadMoreBtn.classList.add('is-hidden');
-      loadMoreBtn.removeEventListener('click', onLoadBtnClick);
-
-      iziToast.info({
-        position: 'topRight',
-        message: "We're sorry, but you've reached the end of search results",
-      });
-    }
   } catch (error) {
-    console.log(error);
+    loader.style.display = 'block';
+
+    iziToast.error({
+      message: 'Something went wrong, please try again later.',
+      position: 'topRight',
+    });
+    console.error('An error occurred:', err.message);
+
+    loader.style.display = 'none';
   }
 };
+
+searchFormEl.addEventListener('submit', OnSearchFormSubmit);
+loadMoreBtn.addEventListener('click', onLoadBtnClick);
