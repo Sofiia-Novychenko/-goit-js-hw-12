@@ -53,6 +53,8 @@ const OnSearchFormSubmit = async event => {
     const { data } = await fetchPhotosByQuery(userInputValue, page);
 
     if (data.total === 0) {
+      loader.style.display = 'none';
+
       iziToast.error({
         title: '',
         messageColor: '#FFFFFF',
@@ -105,6 +107,7 @@ const onLoadBtnClick = async event => {
       createGalleryCardTemplate(data.hits)
     );
 
+    galleryModal.refresh();
     loader.style.display = 'none';
 
     // * реалізація повільного прокручення
@@ -119,7 +122,7 @@ const onLoadBtnClick = async event => {
 
     // * перевірка кінця колекції
 
-    if (page * per_page >= data.totalHits) {
+    if (page * per_page >= data.totalHits || data.hits.length < per_page) {
       loadMoreBtn.classList.add('is-hidden');
       loadMoreBtn.removeEventListener('click', onLoadBtnClick);
 
